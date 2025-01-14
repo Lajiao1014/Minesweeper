@@ -1,10 +1,14 @@
-import React, { useState } from 'react';
+'use client';
+
+
+import React, { useState, useEffect } from 'react';
 import Square from './Square';
 
 interface BoardProps {
     rows: number;
     cols: number;
     mines: number;
+    isFlagging: boolean;
 }
 
 type CellType = {
@@ -16,7 +20,7 @@ type CellType = {
 
 type BoardType = CellType[][];
 
-const Board = ({ rows, cols, mines }: BoardProps) => {
+const Board = ({ rows, cols, mines, isFlagging }: BoardProps) => {
     // init
     const initializeBoard = () => {
 
@@ -28,8 +32,7 @@ const Board = ({ rows, cols, mines }: BoardProps) => {
                 neighborMines: 0
             }))
         );
-
-
+        //randomMines
         let minesPlaced = 0;
         while (minesPlaced < mines) {
             const row = Math.floor(Math.random() * rows);
@@ -39,8 +42,7 @@ const Board = ({ rows, cols, mines }: BoardProps) => {
                 minesPlaced++;
             }
         }
-
-
+        //Check neightborMines number
         for (let col = 0; col < cols; col++) {
             for (let row = 0; row < rows; row++) {
                 if (!newBoard[col][row].hasMine) {
@@ -68,15 +70,26 @@ const Board = ({ rows, cols, mines }: BoardProps) => {
     };
 
     const [board, setBoard] = useState<BoardType>(initializeBoard);
+    const [gameStatus, setGameStatus] = useState<'playing' | 'win' | 'lose'>('playing');
 
+    useEffect(() => {
+        setBoard(initializeBoard());
+        setGameStatus('playing');
+    }, [rows, cols, mines]);
 
     const handleClick = (row: number, col: number) => {
-
-        if (board[col][row].isRevealed || board[col][row].hasFlag) return;
+        //Avoid repeated click
+        if (board[col][row].isRevealed) return;
 
         const newBoard = [...board];
 
-
+        //FlqggingState
+        if (isFlagging) {
+            newBoard[col][row].hasFlag = !newBoard[col][row].hasFlag;
+            setBoard([...newBoard]);
+            return;
+        }
+        //Show All The Mines and 'lose'
         if (board[col][row].hasMine) {
 
             for (let c = 0; c < cols; c++) {
@@ -87,11 +100,11 @@ const Board = ({ rows, cols, mines }: BoardProps) => {
                 }
             }
             setBoard([...newBoard]);
-            alert('Game Over!');
+            setGameStatus('lose');
             return;
         }
 
-
+        //OpenEmptySquare
         const revealEmpty = (r: number, c: number) => {
 
             if (r < 0 || r >= rows || c < 0 || c >= cols) return;
@@ -116,7 +129,7 @@ const Board = ({ rows, cols, mines }: BoardProps) => {
         revealEmpty(row, col);
         setBoard([...newBoard]);
 
-
+        //How To Win?
         let isWin = true;
         for (let c = 0; c < cols; c++) {
             for (let r = 0; r < rows; r++) {
@@ -127,23 +140,43 @@ const Board = ({ rows, cols, mines }: BoardProps) => {
             }
         }
         if (isWin) {
-            alert('Congratulations! You Win!');
+            setGameStatus('win');
         }
     };
 
     return (
-        <div className="grid p-4 max-w-fit mx-auto border border-gray-300"
-            style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
-            {board.map((row, colIndex) =>
-                row.map((cell, rowIndex) => (
-                    <Square
-                        key={`${colIndex}-${rowIndex}`}
-                        row={rowIndex}
-                        col={colIndex}
-                        {...cell}
-                        onClick={handleClick}
-                    />
-                ))
+        <div className="relative">
+            <div className="grid gap-0 p-4 mx-auto"
+                style={{
+                    display: 'grid',
+                    gridTemplateColumns: `repeat(${cols}, 24px)`,
+                    gridTemplateRows: `repeat(${rows}, 24px)`,
+                    border: '1px solid #ccc'
+                }}>
+                {board.map((row, colIndex) =>
+                    row.map((cell, rowIndex) => (
+                        <Square
+                            key={`${colIndex}-${rowIndex}`}
+                            row={rowIndex}
+                            col={colIndex}
+                            {...cell}
+                            onClick={handleClick}
+                        />
+                    ))
+                )}
+            </div>
+
+            {gameStatus !== 'playing' && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
+                    <div className={`p-4 rounded-lg ${gameStatus === 'win'
+                        ? 'bg-green-500 text-white'
+                        : 'bg-red-500 text-white'
+                        }`}>
+                        {gameStatus === 'win'
+                            ? '恭喜你贏了！🎉'
+                            : '你輸了!!!!遊戲結束！💣'}
+                    </div>
+                </div>
             )}
         </div>
     );

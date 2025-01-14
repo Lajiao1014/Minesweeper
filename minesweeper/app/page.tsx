@@ -1,8 +1,7 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import Header from '../components/Header';
-import Square from '../components/Square';
 import Board from '../components/Board';
 
 interface GridSetting {
@@ -34,6 +33,8 @@ const difficultyToGridSize = {
   }
 }
 
+
+
 export default function Home() {
   const [difficulty, setDifficulty] = useState('Easy')
   const gridSetting: GridSetting = useMemo(() =>
@@ -46,39 +47,59 @@ export default function Home() {
   const [time, setTime] = useState(0)
   const [minesLeft, setminesLeft] = useState(gridSetting.mines);
   const [isFlagging, setIsFlagging] = useState(false);
+  const [boardKey, setBoardKey] = useState(0);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    timer = setInterval(() => {
+      setTime(prevTime => prevTime + 1); // 每秒增加 1
+    }, 1000);
+  }, []);
+
+  useEffect(() => {
+    console.log('GridSetting changed:', gridSetting);
+    console.log('Current mines:', gridSetting.mines);
+  }, [gridSetting]);
+
+  const resetGame = () => {
+    setTime(0);
+    setminesLeft(gridSetting.mines);
+    setIsFlagging(false);
+    setBoardKey(prev => prev + 1);
+  };
 
   return <>
-    <div className="flex flex-col w-full min-h-screen bg-gray-100">
-      <Header
-        difficulty={difficulty}
-        time={time}
-        minesLeft={minesLeft}
-        onDifficultyChange={() => {
-          const levels = ["Easy", "Medium", "Hard", "印度"]
-          const currentIndex = levels.indexOf(difficulty)
-          const nextIndex = currentIndex === 3 ? 0 : currentIndex + 1
-          setDifficulty(levels[nextIndex])
-          const newDifficulty = levels[nextIndex];
-          const newMines = newDifficulty === 'Easy' ? 10 :
-            newDifficulty === 'Medium' ? 40 :
-              newDifficulty === 'Hard' ? 99 :
-                145;
-          setminesLeft(newMines);
-        }}
-        onMode={() => {
-          setIsFlagging(!isFlagging)
-        }}
-        onReset={() => {
-          setTime(0);
-          setminesLeft(gridSetting.mines);
-        }}
-      />
+    <div className="flex flex-col items-center justify-center w-full max-h-screen bg-gray-100">
 
-      <Board
-        rows={gridSetting.rows}
-        cols={gridSetting.cols}
-        mines={gridSetting.mines}
-      />
+      <div className="flex flex-col w-full items-center gap-4">
+        <Header
+          difficulty={difficulty}
+          time={time}
+          minesLeft={minesLeft}
+          isFlagging={isFlagging}
+          onDifficultyChange={() => {
+            const newDifficulty =
+              difficulty === 'Easy' ? 'Medium' :
+                difficulty === 'Medium' ? 'Hard' :
+                  difficulty === 'Hard' ? '印度' : 'Easy';
+            setTime(0)
+            setDifficulty(newDifficulty)
+            setBoardKey(prev => prev + 1);
+          }}
+          onMode={() => {
+            setIsFlagging(!isFlagging);
+          }}
+          onReset={resetGame}
+        />
+
+        <Board
+          key={boardKey}
+          rows={gridSetting.rows}
+          cols={gridSetting.cols}
+          mines={gridSetting.mines}
+          isFlagging={isFlagging}
+        />
+      </div>
     </div>
   </>;
 }

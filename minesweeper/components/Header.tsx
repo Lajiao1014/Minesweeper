@@ -4,6 +4,7 @@ interface HeaderProps {
     difficulty: string;
     time: number;
     minesLeft: number;
+    isFlagging: boolean;
     onDifficultyChange: () => void;
     onMode: () => void;
     onReset: () => void;
@@ -15,7 +16,8 @@ const Header = ({
     minesLeft,
     onDifficultyChange,
     onMode,
-    onReset
+    onReset,
+    isFlagging
 }: HeaderProps) => {
     return (
         <div className="flex justify-between items-center w-full bg-gray-800 p-4 text-white">
@@ -28,9 +30,10 @@ const Header = ({
 
             <button
                 onClick={onMode}
-                className="px-4 py-2 bg-yellow-500 rounded hover:bg-yellow-600"
+                className={`px-4 py-2 rounded hover:bg-yellow-600 
+                    ${isFlagging ? 'bg-red-500' : 'bg-yellow-500'}`}
             >
-                地雷標記
+                地雷標記 🚩
             </button>
 
             <div className="px-4 py-2 bg-gray-700 rounded">
