@@ -52,7 +52,7 @@ export default function Home() {
   useEffect(() => {
     let timer: NodeJS.Timeout;
     timer = setInterval(() => {
-      setTime(prevTime => prevTime + 1); // 每秒增加 1
+      setTime(prevTime => prevTime + 1);
     }, 1000);
   }, []);
 
@@ -84,6 +84,7 @@ export default function Home() {
                   difficulty === 'Hard' ? '印度' : 'Easy';
             setTime(0)
             setDifficulty(newDifficulty)
+            setminesLeft(gridSetting.mines)
             setBoardKey(prev => prev + 1);
           }}
           onMode={() => {
